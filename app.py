@@ -1,60 +1,72 @@
-from itertools import product
-
 import requests
 from flask import Flask, render_template, request, make_response, redirect, session, url_for, flash
-# Import the actual products list from your data file
+from flask_login import LoginManager
+
+from config import Config
+from extensions import db, migrate
 from data import products
+import admin
+from models.user import User
 
 app = Flask(__name__)
+
+# Load database settings from config.py
+app.config.from_object(Config)
+
+# Attach extensions to Flask app
+db.init_app(app)
+migrate.init_app(app, db)  # <-- This adds the 'flask db' command
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+# Redirect unauthenticated users trying to access protected routes
+login_manager.login_view = 'admin.login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+app.register_blueprint(admin.admin_db, url_prefix='/admin')
 
 TELEGRAM_BOT_TOKEN = "8218708595:AAH2GIYkr7Q4OiC72CnYqn8-qcgB5g8Dz0o"
 TELEGRAM_CHAT_ID = "-1003855315911"
 
+# --- User Routes ---
+
 @app.route('/')
 def home():
-    # Pass the products list directly into the template
-    return render_template('page/home.html', product_list=products)
+    return render_template('user/page/home.html', product_list=products)
 
 @app.route('/products')
-def view_products(): # Renamed function to avoid conflict with the variable 'products'
-    return render_template('page/product.html', products=products)
-
+def view_products():
+    return render_template('user/page/product.html', products=products)
 
 @app.route('/cart')
 def cart():
-    # 1. Fetch the raw cookie string (e.g., "3,3,3,3,3,3,3,3,3,3,2")
     cart_cookie = request.cookies.get('shopping_cart', '')
     cart_ids = [int(item_id) for item_id in cart_cookie.split(',') if item_id]
 
-    # 2. Use a temporary dictionary to count the quantities of each ID
     id_counts = {}
     for item_id in cart_ids:
         id_counts[item_id] = id_counts.get(item_id, 0) + 1
 
-    # 3. Build your custom cart_list containing explicit dictionary objects
     cart_list = []
     for item_id, qty in id_counts.items():
-        # Find the product details from your master list
         matched_item = next((p for p in products if p['id'] == item_id), None)
-
         if matched_item:
-            # Constructing the exact dictionary structure you requested
             cart_list.append({
                 "id": matched_item["id"],
                 "title": matched_item["title"],
                 "price": matched_item["price"],
                 "image": matched_item["image"],
                 "category": matched_item["category"],
-                "qty": qty,  # <-- Your dynamic qty
-                "row_total": matched_item["price"] * qty  # <-- Price * qty
+                "qty": qty,
+                "row_total": matched_item["price"] * qty
             })
 
-    # Calculate the grand total of the whole cart
     grand_total = sum(item['row_total'] for item in cart_list)
-
-    # Pass your clean cart_list down to the template
-    return render_template('page/view-cart.html', cart=cart_list, total=grand_total)
-
+    return render_template('user/page/view-cart.html', cart=cart_list, total=grand_total)
 
 @app.route('/product')
 def product_detail():
@@ -68,21 +80,16 @@ def product_detail():
     if product is None:
         return "Product Not Found", 404
 
-    # --- NEW: Get products from the same category (excluding the current product) ---
     related_products = [
         p for p in products
         if p['category'] == product['category'] and p['id'] != product['id']
     ]
 
-    # 1. Grab existing cart cookie
     existing_cart = request.cookies.get('shopping_cart', '')
-
-    # 2. Look for the 'add=True' flag from our HTML link
     is_adding = request.args.get('add', type=bool, default=False)
 
-    # Pass 'related_products' into your template context
     response = make_response(
-        render_template('page/product_detail.html', product=product, related_products=related_products)
+        render_template('user/page/product_detail.html', product=product, related_products=related_products)
     )
 
     if is_adding:
@@ -95,69 +102,53 @@ def product_detail():
 
     return response
 
-
 @app.route('/cart/add')
 def add_to_cart():
     product_id = request.args.get('id', type=int)
     if not product_id:
         return "Product ID is required", 400
 
-    # 1. Grab the existing cart cookie string
     existing_cart = request.cookies.get('shopping_cart', '')
 
-    # 2. Append the new product ID to the string
     if existing_cart:
         updated_cart = f"{existing_cart},{product_id}"
     else:
         updated_cart = str(product_id)
 
-    # 3. Create a redirect pointing straight to your /cart route
     response = make_response(redirect('/cart'))
-
-    # 4. Save the updated string back into the browser cookie storage
     response.set_cookie('shopping_cart', updated_cart, max_age=2592000)
 
     return response
 
-
 @app.route('/cart/update', methods=['POST'])
 def update_cart():
     product_id = request.form.get('product_id', type=int)
-    action = request.form.get('action')  # 'increase' or 'decrease'
+    action = request.form.get('action')
 
     if not product_id:
         return redirect('/cart')
 
-    # Read the existing flat cookie string sequence
     cart_cookie = request.cookies.get('shopping_cart', '')
     cart_ids = [int(item_id) for item_id in cart_cookie.split(',') if item_id]
 
     if action == 'increase':
-        # Simply append another instance of this ID to the tracking array
         cart_ids.append(product_id)
-
     elif action == 'decrease':
-        # Remove exactly one instance of this item ID from the array list if present
         if product_id in cart_ids:
             cart_ids.remove(product_id)
 
-    # Reassemble the comma-separated string from the updated array list
     updated_cookie_str = ",".join(map(str, cart_ids))
 
-    # Save the updated value string structure directly back into the browser cookie storage
     response = make_response(redirect('/cart'))
     if updated_cookie_str:
         response.set_cookie('shopping_cart', updated_cookie_str, max_age=2592000)
     else:
-        # If the cart is now completely empty, drop the cookie key entirely
         response.delete_cookie('shopping_cart')
 
     return response
 
-
 @app.route('/checkout', methods=['POST'])
 def checkout():
-    # 1. Fetch the data straight from cookies
     cart_cookie = request.cookies.get('shopping_cart', '')
 
     if not cart_cookie:
@@ -166,12 +157,10 @@ def checkout():
 
     cart_ids = [int(item_id) for item_id in cart_cookie.split(',') if item_id]
 
-    # 2. Count quantities of each product ID
     id_counts = {}
     for item_id in cart_ids:
         id_counts[item_id] = id_counts.get(item_id, 0) + 1
 
-    # 3. Build the cart list to calculate the total for the checkout form view
     cart_list = []
     grand_total = 0.0
 
@@ -191,13 +180,10 @@ def checkout():
         flash("Your cart items are invalid!", "warning")
         return redirect('/products')
 
-    # Render the checkout page and pass down the calculated grand total
-    return render_template('page/checkout.html', total=grand_total)
-
+    return render_template('user/page/checkout.html', total=grand_total)
 
 @app.route('/submit-order', methods=['POST'])
 def submit_order():
-    # 1. Grab cookie data again to construct the final text receipt
     cart_cookie = request.cookies.get('shopping_cart', '')
     if not cart_cookie:
         flash("Your cart session has expired.", "error")
@@ -209,14 +195,12 @@ def submit_order():
     for item_id in cart_ids:
         id_counts[item_id] = id_counts.get(item_id, 0) + 1
 
-    # 2. Retrieve customer details from form inputs
     username = request.form.get('username')
     age = request.form.get('age')
     phone = request.form.get('phone')
     location = request.form.get('location')
     address = request.form.get('address')
 
-    # 3. Build item summary string and calculate final total
     items_summary = ""
     grand_total = 0.0
 
@@ -228,7 +212,6 @@ def submit_order():
             items_summary += f"📦 *{matched_item['title']}*\n"
             items_summary += f"   ↳ Qty: {qty} x ${matched_item['price']:.2f} = ${row_total:.2f}\n"
 
-    # 4. Format structured Markdown payload for your Telegram Channel
     message = (
         f"🚨 📈 *NEW INCOMING ORDER* 📈 🚨\n\n"
         f"👤 *Customer Profile:*\n"
@@ -243,7 +226,6 @@ def submit_order():
         f"💰 **GRAND TOTAL AMOUNT: ${grand_total:.2f}**"
     )
 
-    # 5. Dispatch payload asynchronously to Telegram API
     telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -254,7 +236,6 @@ def submit_order():
     try:
         api_response = requests.post(telegram_url, json=payload)
         if api_response.status_code == 200:
-            # Clear out the cookie since order is successfully logged
             response = make_response(redirect(url_for('payment_success')))
             response.delete_cookie('shopping_cart')
             return response
@@ -264,33 +245,29 @@ def submit_order():
     except Exception as e:
         return f"Failed to send order notification: {str(e)}", 500
 
-
 @app.route('/payment_success')
 def payment_success():
-    return render_template('page/susccess_payment.html')
+    return render_template('user/page/susccess_payment.html')
 
 @app.route('/about')
 def about():
-    return render_template('page/about.html')
+    return render_template('user/page/about.html')
 
 @app.route('/contact')
 def contact():
-    return render_template('page/contact.html')
+    return render_template('user/page/contact.html')
 
 @app.route('/register')
 def register():
-
-    return render_template('page/register.html')
+    return render_template('user/page/register.html')
 
 @app.route('/login')
 def login():
-
-    return render_template('page/login.html')
+    return render_template('user/page/login.html')
 
 @app.route('/settings')
 def settings():
-
-    return render_template('page/setting.html')
+    return render_template('user/page/setting.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

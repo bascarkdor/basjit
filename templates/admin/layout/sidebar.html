@@ -1,0 +1,37 @@
+<aside class="w-full md:w-64 bg-slate-900 text-slate-200 flex flex-col p-5 shrink-0 min-h-screen">
+    <div class="text-xl font-black text-white tracking-wider mb-6 md:mb-8">MY_APP</div>
+
+    <!-- Main Navigation -->
+    <nav id="sidebar-nav" class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Dashboard</a>
+        <a href="{{ url_for('admin.list_users') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">User</a>
+        <a href="{{ url_for('admin.product') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Product</a>
+        <a href="{{ url_for('admin.categories') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Categories</a>
+    </nav>
+
+    <div class="mt-auto pt-6 border-t border-slate-800">
+        <a href="{{ url_for('admin.logout') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors group">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                // Active styles
+                link.classList.add('bg-slate-800', 'text-white');
+            } else {
+                // Inactive styles
+                link.classList.add('text-slate-400', 'hover:bg-slate-800/50', 'hover:text-white');
+            }
+        });
+    });
+</script>
