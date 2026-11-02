@@ -1,0 +1,134 @@
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% set cat = 'danger' if category == 'error' else category %}
+                <div class="toast-item pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 transform translate-y-0 opacity-100 animate-slide-in
+                    {% if cat == 'success' %}
+                        bg-white border-emerald-200 text-slate-800 shadow-emerald-500/10
+                    {% elif cat == 'danger' %}
+                        bg-white border-rose-200 text-slate-800 shadow-rose-500/10
+                    {% elif cat == 'warning' %}
+                        bg-white border-amber-200 text-slate-800 shadow-amber-500/10
+                    {% else %}
+                        bg-white border-blue-200 text-slate-800 shadow-blue-500/10
+                    {% endif %}
+                ">
+                    <!-- Icon -->
+                    <div class="shrink-0 mt-0.5">
+                        {% if cat == 'success' %}
+                            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                            </div>
+                        {% elif cat == 'danger' %}
+                            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 7.5h.008v.008H12v-.008Z" />
+                                </svg>
+                            </div>
+                        {% elif cat == 'warning' %}
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                                </svg>
+                            </div>
+                        {% else %}
+                            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Message Body -->
+                    <div class="flex-1 min-w-0 pr-1">
+                        <h4 class="text-xs font-bold uppercase tracking-wider
+                            {% if cat == 'success' %}text-emerald-800{% elif cat == 'danger' %}text-rose-800{% elif cat == 'warning' %}text-amber-800{% else %}text-blue-800{% endif %}">
+                            {% if cat == 'success' %}Success{% elif cat == 'danger' %}Notice{% elif cat == 'warning' %}Warning{% else %}Info{% endif %}
+                        </h4>
+                        <p class="text-xs text-slate-600 font-medium mt-0.5 leading-relaxed break-words">
+                            {{ message }}
+                        </p>
+                    </div>
+
+                    <!-- Dismiss Button -->
+                    <button type="button" onclick="dismissToast(this.closest('.toast-item'))" class="shrink-0 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<style>
+@keyframes toastSlideIn {
+    0% { transform: translateX(100%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-in {
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+</style>
+
+<script>
+    function dismissToast(el) {
+        if (!el) return;
+        el.style.transform = 'translateX(100%)';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+    }
+
+    // Auto dismiss after 4 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        const toasts = document.querySelectorAll('#toast-container .toast-item');
+        toasts.forEach((toast, idx) => {
+            setTimeout(() => {
+                dismissToast(toast);
+            }, 4000 + (idx * 500));
+        });
+    });
+
+    // Client-side toast trigger helper
+    window.showToast = function(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const colorMap = {
+            success: { border: 'border-emerald-200', text: 'text-emerald-800', bg: 'bg-emerald-50', iconColor: 'text-emerald-600', title: 'Success', svg: '<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />' },
+            danger: { border: 'border-rose-200', text: 'text-rose-800', bg: 'bg-rose-50', iconColor: 'text-rose-600', title: 'Error', svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 7.5h.008v.008H12v-.008Z" />' },
+            warning: { border: 'border-amber-200', text: 'text-amber-800', bg: 'bg-amber-50', iconColor: 'text-amber-600', title: 'Warning', svg: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />' },
+            info: { border: 'border-blue-200', text: 'text-blue-800', bg: 'bg-blue-50', iconColor: 'text-blue-600', title: 'Info', svg: '<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />' }
+        };
+
+        const config = colorMap[type] || colorMap.info;
+        const toast = document.createElement('div');
+        toast.className = `toast-item pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 transform translate-y-0 opacity-100 animate-slide-in bg-white ${config.border} text-slate-800`;
+        
+        toast.innerHTML = `
+            <div class="shrink-0 mt-0.5">
+                <div class="w-8 h-8 rounded-xl ${config.bg} ${config.iconColor} flex items-center justify-center border">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        ${config.svg}
+                    </svg>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0 pr-1">
+                <h4 class="text-xs font-bold uppercase tracking-wider ${config.text}">${config.title}</h4>
+                <p class="text-xs text-slate-600 font-medium mt-0.5 leading-relaxed break-words">${message}</p>
+            </div>
+            <button type="button" onclick="dismissToast(this.closest('.toast-item'))" class="shrink-0 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        `;
+
+        container.appendChild(toast);
+        setTimeout(() => dismissToast(toast), 4000);
+    };
+</script>

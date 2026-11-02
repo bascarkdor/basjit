@@ -20,7 +20,35 @@
     <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-xl pointer-events-none"></div>
 </section>
 
-<section class="py-10 md:py-16">
+<!-- Explore Categories Section -->
+{% if categories %}
+<section class="py-6">
+    <div class="flex items-center justify-between mb-5">
+        <div>
+            <h2 class="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Shop by Category</h2>
+            <p class="text-xs md:text-sm text-gray-500 mt-0.5">Browse through our top departments</p>
+        </div>
+        <a href="/products" class="text-xs md:text-sm font-bold text-blue-600 hover:text-blue-700">All Products &rarr;</a>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {% for cat in categories %}
+        <a href="/products?category={{ cat.name|urlencode }}" 
+           class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200/80 p-4 hover:shadow-md hover:border-blue-300 transition-all flex flex-col items-center text-center">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gray-50 mb-3 flex items-center justify-center border border-gray-100">
+                <img src="{{ cat.image }}" alt="{{ cat.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            </div>
+            <h3 class="text-sm font-bold text-gray-900 group-hover:text-blue-600 capitalize transition truncate w-full">
+                {{ cat.name }}
+            </h3>
+            <span class="text-[11px] text-gray-400 mt-0.5 font-medium">{{ cat.product_count }} items</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="py-6 md:py-10">
     <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8 tracking-tight">
         Featured Products
     </h2>

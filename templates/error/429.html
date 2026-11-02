@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>429 - Too Many Requests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex items-center justify-center p-4">
+    <div class="max-w-lg w-full bg-white border border-rose-100 rounded-3xl p-8 sm:p-10 shadow-xl text-center space-y-6 relative overflow-hidden">
+        
+        <!-- Top Status Accent Bar -->
+        <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600"></div>
+
+        <!-- Warning Clock Icon -->
+        <div class="relative w-24 h-24 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto border border-rose-100 shadow-inner">
+            <svg class="h-12 w-12 animate-pulse" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <div class="absolute -top-1 -right-1 bg-rose-600 text-white font-black text-xs px-2 py-0.5 rounded-full shadow-xs">
+                429
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                Too Many Requests
+            </h1>
+            <p class="text-sm sm:text-base text-slate-600 max-w-md mx-auto leading-relaxed">
+                You have sent too many requests in a short period of time. Rate limiting is active to protect system performance.
+            </p>
+        </div>
+
+        {% if error %}
+        <div class="bg-rose-50/70 border border-rose-200/80 rounded-2xl p-4 text-left">
+            <span class="block text-xs font-bold text-rose-700 uppercase tracking-wider mb-1">Rate Limit Detail</span>
+            <p class="text-xs text-rose-800 font-medium font-mono leading-relaxed">{{ error }}</p>
+        </div>
+        {% endif %}
+
+        <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button onclick="window.location.reload()" 
+                    class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-3.5 rounded-xl text-sm shadow-md transition active:scale-[0.98] text-center cursor-pointer">
+                Try Again
+            </button>
+            <a href="{{ url_for('user.home') }}" 
+               class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3.5 rounded-xl text-sm transition active:scale-[0.98] text-center">
+                Return Home
+            </a>
+        </div>
+
+    </div>
+</body>
+</html>

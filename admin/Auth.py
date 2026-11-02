@@ -1,10 +1,12 @@
 from flask import render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User
+from extensions import limiter
 from . import admin_db  # Using admin_db here
 
 
 @admin_db.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 5 minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin.dashboard'))

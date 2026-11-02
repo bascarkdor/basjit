@@ -1,81 +1,117 @@
 {% extends 'user/layout/layout.html' %}
 
-{% block title %}Register - My Flask Store{% endblock %}
+{% block title %}Register - FlaskShop{% endblock %}
 
 {% block content %}
-<div class="bg-white p-8 rounded-xl shadow-lg w-full">
-    <h2 class="text-3xl font-bold text-center mb-6 text-gray-900">Register</h2>
-
-    <form action="/register" method="POST" class="space-y-4">
-        <div>
-            <input
-                type="text"
-                name="fullname"
-                placeholder="Full Name"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            >
+<div class="max-w-md mx-auto my-6 sm:my-10">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200/80">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Create Account</h2>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1">Join FlaskShop to order and track your purchases</p>
         </div>
 
-        <div>
-            <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            >
+        {% set target_next = request.args.get('next') or next or '' %}
+
+        <!-- Order Checkout Required Banner -->
+        {% if 'checkout' in target_next %}
+        <div class="mb-5 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <div class="text-xs">
+                <p class="font-bold">Account Required for Checkout</p>
+                <p class="text-blue-700 mt-0.5">Create your account below to proceed immediately to checkout and pay for your order.</p>
+            </div>
         </div>
+        {% endif %}
 
-        <div>
-            <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            >
-        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-4 space-y-2">
+              {% for category, message in messages %}
+                <div class="p-3 rounded-xl text-xs font-semibold {% if category == 'danger' or category == 'error' %}bg-rose-50 text-rose-700 border border-rose-200{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
-        <div>
-            <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            >
-        </div>
+        <form action="{{ url_for('user.register') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ target_next }}">
 
-        <div>
-            <input
-                type="password"
-                name="confirm_password"
-                placeholder="Confirm Password"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-            >
-        </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Full Name</label>
+                <input
+                    type="text"
+                    name="fullname"
+                    placeholder="e.g. Sok San"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    required
+                >
+            </div>
 
-        <button
-            type="submit"
-            class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition cursor-pointer">
-            Register
-        </button>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Email Address</label>
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="name@example.com"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    required
+                >
+            </div>
 
-        <a href="{{ url_for('home') }}" class="w-full">
-            <button type="button"
-                class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition active:scale-[0.98] cursor-pointer text-center">
-                Cancel
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Password</label>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Create a strong password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    required
+                >
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Confirm Password</label>
+                <input
+                    type="password"
+                    name="confirm_password"
+                    placeholder="Re-enter your password"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-sm active:scale-[0.98] cursor-pointer text-sm">
+                {% if 'checkout' in target_next %}Register & Continue to Checkout{% else %}Register Account{% endif %}
             </button>
-        </a>
-    </form>
+        </form>
 
-    <p class="text-center mt-6 text-sm text-gray-600">
-        Already have an account?
-        <a href="/login" class="text-blue-600 hover:underline font-medium">
-            Login
-        </a>
-    </p>
+        <!-- Switch to Login -->
+        <div class="mt-6 pt-5 border-t border-gray-100 text-center text-xs text-gray-600 space-y-2">
+            <p>
+                Already have an account? 
+                <a href="{{ url_for('user.login', next=target_next) }}" class="text-blue-600 hover:underline font-bold">
+                    Login here
+                </a>
+            </p>
+            <p>
+                <a href="{{ url_for('user.home') }}" class="text-gray-400 hover:text-gray-600 font-medium inline-flex items-center gap-1">
+                    &larr; Back to Store
+                </a>
+            </p>
+        </div>
+
+    </div>
 </div>
 {% endblock %}

@@ -12,7 +12,7 @@
     <div class="container mx-auto px-4 md:px-6">
         <div class="flex justify-between items-center h-16">
 
-            <a href="/static" class="text-white text-2xl font-bold tracking-wide">
+            <a href="{{ url_for('user.home') }}" class="text-white text-2xl font-bold tracking-wide">
                 FlaskShop
             </a>
 
@@ -31,31 +31,31 @@
                 <ul class="flex flex-col md:flex-row items-stretch md:items-center p-4 md:p-0 space-y-3 md:space-y-0 md:space-x-6 lg:space-x-8 text-white font-medium">
 
                     <li>
-                        <a href="/static" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
+                        <a href="{{ url_for('user.home') }}" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
                             Home
                         </a>
                     </li>
 
                     <li>
-                        <a href="/about" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
+                        <a href="{{ url_for('user.about') }}" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
                             About
                         </a>
                     </li>
 
                     <li>
-                        <a href="/products" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
+                        <a href="{{ url_for('user.view_products') }}" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
                             Products
                         </a>
                     </li>
 
                     <li>
-                        <a href="/contact" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
+                        <a href="{{ url_for('user.contact') }}" class="block py-2 px-3 md:p-0 rounded-lg md:rounded-none hover:bg-blue-800 md:hover:bg-transparent hover:text-yellow-300 transition">
                             Contact
                         </a>
                     </li>
 
                     <li class="pt-2 md:pt-0">
-                        <a href="/cart"
+                        <a href="{{ url_for('user.cart') }}"
                            class="block text-center bg-white text-blue-700 px-4 py-2.5 rounded-xl md:rounded-lg font-bold md:font-medium hover:bg-yellow-300 hover:text-black transition shadow-sm md:shadow-none active:scale-[0.98] md:active:scale-100">
                             Cart
                         </a>
@@ -64,26 +64,46 @@
                     <li class="relative list-none pt-2 md:pt-0">
                         <details class="group">
                             <summary class="cursor-pointer list-none bg-blue-800 px-4 py-2.5 md:py-2 rounded-xl md:rounded-lg hover:bg-blue-900 transition text-white flex justify-between items-center md:inline-flex select-none">
-                                <span>Account</span>
+                                <span>{% if current_user.is_authenticated %}{{ current_user.name }}{% else %}Account{% endif %}</span>
                                 <span class="text-xs ml-2 group-open:rotate-180 transition-transform">▼</span>
                             </summary>
 
                             <ul class="mt-2 md:absolute md:right-0 w-full md:w-44 bg-white rounded-xl md:rounded-lg shadow-xl overflow-hidden text-gray-700">
-                                <li>
-                                    <a href="/register" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100 md:border-none">
-                                        Register
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/login" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100 md:border-none">
-                                        Login
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/settings" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition">
-                                        Settings
-                                    </a>
-                                </li>
+                                {% if current_user.is_authenticated %}
+                                    {% if current_user.role == 'Administrator' %}
+                                    <li>
+                                        <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100">
+                                            Admin Dashboard
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    <li>
+                                        <a href="{{ url_for('user.settings') }}" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100">
+                                            Settings
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('user.logout') }}" class="block px-4 py-3 hover:bg-red-50 text-red-600 text-sm font-semibold md:font-medium transition">
+                                            Logout
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li>
+                                        <a href="{{ url_for('user.register') }}" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100 md:border-none">
+                                            Register
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('user.login') }}" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition border-b border-gray-100 md:border-none">
+                                            Login
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ url_for('user.settings') }}" class="block px-4 py-3 hover:bg-blue-50 text-sm font-semibold md:font-medium transition">
+                                            Settings
+                                        </a>
+                                    </li>
+                                {% endif %}
                             </ul>
                         </details>
                     </li>

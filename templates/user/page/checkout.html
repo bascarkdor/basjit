@@ -1,68 +1,431 @@
 {% extends 'user/layout/layout.html' %}
 
-{% block title %} Checkout - FlaskShop {% endblock %}
+{% block title %} Checkout & Payment - FlaskShop {% endblock %}
 
 {% block content %}
-<div class="bg-gray-50 min-h-screen py-6 md:py-12">
-    <div class="container mx-auto px-4 sm:px-6 max-w-2xl space-y-6 template-fade-in">
+<div class="bg-gray-50/50 min-h-screen py-8 md:py-12">
+    <div class="container mx-auto px-4 sm:px-6 max-w-4xl space-y-8">
 
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 flex items-center tracking-tight px-1">
-            Secure Checkout
-        </h1>
-
-        <div class="bg-white shadow-sm border border-gray-200 rounded-2xl p-6 md:p-8">
-            <h2 class="text-lg font-bold text-gray-800 mb-6">Delivery Details & Information</h2>
-
-            <form action="/submit-order" method="POST" class="space-y-5">
-
-                <div class="grid grid-cols-3 gap-4">
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Username / Full Name</label>
-                        <input type="text" name="username" required placeholder="John Doe"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Age</label>
-                        <input type="number" name="age" required placeholder="25" min="1"
-                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Phone Number</label>
-                    <input type="tel" name="phone" required placeholder="+1 (555) 000-0000"
-                           class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">General Location (City / State)</label>
-                    <input type="text" name="location" required placeholder="Los Angeles, CA"
-                           class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Full Delivery Address</label>
-                    <textarea name="address" required rows="4" placeholder="Street Address, Apartment, Suite, Zip Code..."
-                              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition resize-none"></textarea>
-                </div>
-
-                <div class="bg-gray-50 rounded-xl p-4 flex justify-between items-center border border-gray-100">
-                    <span class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Due Amount:</span>
-                    <span class="text-xl font-black text-gray-900">${{ "%.2f"|format(total) }}</span>
-                </div>
-
-                <div class="pt-2 include flex-col sm:flex-row justify-between items-center gap-4">
-                    <a href="/cart" class="text-sm font-bold text-blue-600 hover:text-blue-700 transition">
-                        &larr; Return to Cart
-                    </a>
-                    <button type="submit"
-                            class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-xl transition duration-200 shadow-md active:scale-[0.98] cursor-pointer text-sm text-center">
-                        Confirm & Place Order
-                    </button>
-                </div>
-
-            </form>
+        <!-- Breadcrumb / Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200/80 pb-5">
+            <div>
+                <a href="/cart" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition mb-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    Back to Shopping Cart
+                </a>
+                <h1 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Checkout & Payment</h1>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if current_user.is_authenticated %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-full text-xs font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Ordering as: {{ current_user.name }}
+                </span>
+                {% endif %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-xs font-bold">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    256-Bit SSL Encrypted
+                </span>
+            </div>
         </div>
+
+        <form id="checkoutForm" action="/submit-order" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <input type="hidden" name="csrf_token" id="csrfToken" value="{{ csrf_token() }}">
+
+            <!-- Left Column: Customer & Delivery Details -->
+            <div class="lg:col-span-7 space-y-6">
+                <!-- Delivery Info Card -->
+                <div class="bg-white shadow-sm border border-gray-200/80 rounded-2xl p-6 sm:p-7 space-y-5">
+                    <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">1</div>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900">Delivery Information</h2>
+                            <p class="text-xs text-gray-500">Where should we deliver your order?</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="username" id="custName" required placeholder="John Doe"
+                                   value="{{ current_user.name if current_user.is_authenticated else '' }}"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Age</label>
+                            <input type="number" name="age" id="custAge" placeholder="25" min="1"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Phone Number <span class="text-red-500">*</span></label>
+                            <input type="tel" name="phone" id="custPhone" required placeholder="012 345 678"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">City / Province <span class="text-red-500">*</span></label>
+                            <input type="text" name="location" id="custLocation" required placeholder="Phnom Penh"
+                                   class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">Full Delivery Address <span class="text-red-500">*</span></label>
+                        <textarea name="address" id="custAddress" required rows="3" placeholder="House #, Street name, Sangkat, Khan..."
+                                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Payment Method Card -->
+                <div class="bg-white shadow-sm border border-gray-200/80 rounded-2xl p-6 sm:p-7 space-y-5">
+                    <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">2</div>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900">Select Payment Method</h2>
+                            <p class="text-xs text-gray-500">Choose how you want to pay</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Options -->
+                    <div class="space-y-3">
+                        <!-- Bakong KHQR Option (Recommended) -->
+                        <label class="payment-method-card relative flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 border-red-500 bg-red-50/20" id="cardMethodKHQR">
+                            <input type="radio" name="payment_method" value="KHQR" checked class="mt-1 text-red-600 focus:ring-red-500 h-4 w-4" onchange="switchPaymentMethod('KHQR')">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-black tracking-wider bg-red-600 text-white">KHQR</span>
+                                        <span class="font-extrabold text-sm text-gray-900">Bakong KHQR (Instant Online)</span>
+                                    </div>
+                                    <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">Fast & Zero Fee</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Scan popup QR code instantly using ABA, Bakong, ACLEDA, Wing, or any Cambodian Mobile Banking app.</p>
+                                <div class="mt-2.5 flex items-center gap-2 text-[11px] text-gray-500 font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Real-time 3s automatic transaction verification
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- Cash on Delivery Option -->
+                        <label class="payment-method-card relative flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 border-gray-200 hover:border-gray-300 bg-white" id="cardMethodDelivery">
+                            <input type="radio" name="payment_method" value="DELIVERY" class="mt-1 text-blue-600 focus:ring-blue-500 h-4 w-4" onchange="switchPaymentMethod('DELIVERY')">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-white">COD</span>
+                                        <span class="font-bold text-sm text-gray-900">Pay on Delivery (Cash on Delivery)</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Pay with cash directly to the courier upon receiving your package at your doorstep.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary & Place Order Button -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white shadow-sm border border-gray-200/80 rounded-2xl p-6 space-y-5 sticky top-6">
+                    <h2 class="text-base font-bold text-gray-900 pb-3 border-b border-gray-100 flex items-center justify-between">
+                        <span>Order Summary</span>
+                        <span class="text-xs font-semibold text-gray-400">Total: ${{ "%.2f"|format(total) }}</span>
+                    </h2>
+
+                    <!-- Items List -->
+                    {% if cart_items %}
+                    <div class="space-y-3 max-h-60 overflow-y-auto pr-1 divide-y divide-gray-100 text-xs">
+                        {% for item in cart_items %}
+                        <div class="pt-3 first:pt-0 flex items-center gap-3">
+                            <img src="{{ item.image }}" alt="{{ item.title }}" class="w-11 h-11 rounded-lg object-cover border border-gray-100 shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-gray-800 truncate">{{ item.title }}</p>
+                                <p class="text-gray-400">Qty: {{ item.qty }} &times; ${{ "%.2f"|format(item.price) }}</p>
+                            </div>
+                            <span class="font-extrabold text-gray-900">${{ "%.2f"|format(item.row_total) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Pricing Breakdown -->
+                    <div class="border-t border-gray-100 pt-4 space-y-2 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span class="font-semibold text-gray-800">${{ "%.2f"|format(total) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery Shipping</span>
+                            <span class="font-semibold text-emerald-600">Free</span>
+                        </div>
+                        <div class="border-t border-gray-200/80 pt-3 flex justify-between items-baseline">
+                            <span class="font-bold text-gray-900 text-base">Grand Total</span>
+                            <span class="font-black text-2xl text-gray-900">${{ "%.2f"|format(total) }} <span class="text-xs font-bold text-gray-400">USD</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Submit / Trigger Button -->
+                    <button type="submit" id="btnPlaceOrder"
+                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-xl transition duration-200 shadow-md active:scale-[0.98] cursor-pointer text-sm flex items-center justify-center gap-2">
+                        <span id="btnPlaceOrderText">Pay ${{ "%.2f"|format(total) }} with Bakong KHQR</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+
+                    <p class="text-[11px] text-center text-gray-400">
+                        By placing your order, you agree to our Store Terms of Service and Privacy Policy.
+                    </p>
+                </div>
+            </div>
+        </form>
+
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- BAKONG KHQR POPUP MODAL                     -->
+<!-- ========================================== -->
+<div id="khqrModal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-gray-100 transform transition-all animate-in fade-in zoom-in-95 duration-200">
+
+        <!-- Authentic KHQR Red Header Banner -->
+        <div class="bg-[#E1251B] p-4 text-white text-center relative">
+            <button onclick="closeKhqrModal()" class="absolute top-3.5 right-3.5 text-white/80 hover:text-white bg-black/10 hover:bg-black/20 p-1 rounded-full transition cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <div class="inline-flex items-center gap-1.5 font-black text-xl tracking-wider uppercase">
+                <span class="bg-white text-[#E1251B] px-1.5 py-0.5 rounded text-sm font-black">KH</span>
+                <span>QR</span>
+            </div>
+            <p class="text-[11px] text-white/90 font-medium tracking-wide mt-0.5">National QR Code Standard of Cambodia</p>
+        </div>
+
+        <!-- Body with Merchant Info & QR Code -->
+        <div class="p-6 text-center space-y-4">
+            <!-- Merchant & Price Details -->
+            <div>
+                <p class="text-xs uppercase font-extrabold tracking-wider text-gray-400" id="modalMerchantName">Ecommerce</p>
+                <div class="text-3xl font-black text-gray-900 mt-1">
+                    $<span id="modalAmount">{{ "%.2f"|format(total) }}</span> <span class="text-sm font-bold text-gray-400">USD</span>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-0.5" id="modalOrderNumber">Order #...</p>
+            </div>
+
+            <!-- Dynamic QR Code Container -->
+            <div class="relative inline-block mx-auto p-3 bg-white rounded-2xl border-2 border-dashed border-red-200 shadow-inner">
+                <img id="khqrImage" src="" alt="Bakong KHQR" class="w-56 h-56 mx-auto object-contain transition-opacity duration-300">
+
+                <!-- Success Overlay Animation when paid -->
+                <div id="khqrSuccessOverlay" class="absolute inset-0 bg-white/95 rounded-2xl hidden flex-col items-center justify-center space-y-2 p-4">
+                    <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center animate-bounce">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="text-base font-black text-gray-900">Payment Approved!</h3>
+                    <p class="text-xs text-gray-500 font-medium">Redirecting to confirmation...</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Status / Polling Indicator (Checked every 3s) -->
+            <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-1">
+                <div class="flex items-center justify-center gap-2 text-xs font-bold text-gray-700">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                    <span id="khqrStatusText">Checking payment (every 3s)...</span>
+                </div>
+                <div class="text-[10px] text-gray-400 font-mono truncate px-2" id="khqrMd5Text">
+                    MD5: Generating...
+                </div>
+            </div>
+
+            <!-- Supported Apps Banner -->
+            <div class="text-[11px] text-gray-400 font-medium leading-tight">
+                Scan with <strong class="text-gray-700">Bakong</strong>, <strong class="text-gray-700">ABA Mobile</strong>, <strong class="text-gray-700">ACLEDA</strong>, or any KHQR banking app.
+            </div>
+
+            <!-- Development / Demo Helper Button -->
+            <div class="pt-2 border-t border-gray-100 flex items-center justify-center gap-2">
+                <button type="button" onclick="closeKhqrModal()" class="w-1/2 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition cursor-pointer">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let currentPaymentMethod = 'KHQR';
+let currentMd5 = null;
+let currentOrderId = null;
+let pollingInterval = null;
+const CHECK_INTERVAL_MS = 3000; // Check transaction status every 3 seconds
+
+function switchPaymentMethod(method) {
+    currentPaymentMethod = method;
+    const cardKHQR = document.getElementById('cardMethodKHQR');
+    const cardDelivery = document.getElementById('cardMethodDelivery');
+    const btnText = document.getElementById('btnPlaceOrderText');
+    const btn = document.getElementById('btnPlaceOrder');
+
+    if (method === 'KHQR') {
+        cardKHQR.classList.add('border-red-500', 'bg-red-50/20');
+        cardKHQR.classList.remove('border-gray-200');
+        cardDelivery.classList.remove('border-blue-500', 'bg-blue-50/20');
+        cardDelivery.classList.add('border-gray-200');
+
+        btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        btn.classList.add('bg-red-600', 'hover:bg-red-700');
+        btnText.textContent = 'Pay ${{ "%.2f"|format(total) }} with Bakong KHQR';
+    } else {
+        cardDelivery.classList.add('border-blue-500', 'bg-blue-50/20');
+        cardDelivery.classList.remove('border-gray-200');
+        cardKHQR.classList.remove('border-red-500', 'bg-red-50/20');
+        cardKHQR.classList.add('border-gray-200');
+
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        btnText.textContent = 'Confirm Order (Pay on Delivery)';
+    }
+}
+
+// Intercept form submit
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    if (currentPaymentMethod === 'KHQR') {
+        e.preventDefault();
+        initiateKhqrPayment();
+    }
+    // If DELIVERY, standard form POST to /submit-order executes naturally
+});
+
+async function initiateKhqrPayment() {
+    const custName = document.getElementById('custName').value.trim();
+    const custAge = document.getElementById('custAge').value;
+    const custPhone = document.getElementById('custPhone').value.trim();
+    const custLocation = document.getElementById('custLocation').value.trim();
+    const custAddress = document.getElementById('custAddress').value.trim();
+    const csrfToken = document.getElementById('csrfToken').value;
+
+    if (!custName || !custPhone || !custAddress) {
+        alert("Please fill in your Name, Phone Number, and Delivery Address.");
+        return;
+    }
+
+    const btn = document.getElementById('btnPlaceOrder');
+    const btnText = document.getElementById('btnPlaceOrderText');
+    const originalText = btnText.textContent;
+    btn.disabled = true;
+    btnText.textContent = 'Generating KHQR...';
+
+    try {
+        const response = await fetch('/api/checkout/create-khqr-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                username: custName,
+                age: custAge,
+                phone: custPhone,
+                location: custLocation,
+                address: custAddress
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401 || data.require_auth) {
+            alert(data.message || 'Please log in or register first to pay.');
+            window.location.href = data.redirect_url || '/login?next=/checkout';
+            return;
+        }
+
+        if (response.ok && data.status === 'success') {
+            currentMd5 = data.md5;
+            currentOrderId = data.order_id;
+
+            // Fill modal UI
+            document.getElementById('khqrImage').src = data.qr_image;
+            document.getElementById('modalAmount').textContent = Number(data.amount).toFixed(2);
+            document.getElementById('modalOrderNumber').textContent = data.order_number;
+            document.getElementById('modalMerchantName').textContent = data.merchant_name || 'Ecommerce';
+            document.getElementById('khqrMd5Text').textContent = 'MD5: ' + data.md5;
+            document.getElementById('khqrStatusText').textContent = 'Waiting for scan & payment (every 3s)...';
+
+            // Show popup modal
+            openKhqrModal();
+
+            // Start smart polling every 3 seconds!
+            startPollingStatus();
+        } else {
+            alert(data.message || 'Error creating KHQR order.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Network error while creating KHQR order.');
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = originalText;
+    }
+}
+
+function openKhqrModal() {
+    const modal = document.getElementById('khqrModal');
+    document.getElementById('khqrSuccessOverlay').classList.add('hidden');
+    document.getElementById('khqrSuccessOverlay').classList.remove('flex');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeKhqrModal() {
+    stopPollingStatus();
+    const modal = document.getElementById('khqrModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function startPollingStatus() {
+    stopPollingStatus(); // Clear any existing
+
+    pollingInterval = setInterval(async () => {
+        if (!currentMd5) return;
+
+        try {
+            const res = await fetch(`/api/bakong/check-status?md5=${encodeURIComponent(currentMd5)}`);
+            const result = await res.json();
+
+            if (result.paid === true) {
+                // Payment Captured! Stop polling immediately
+                stopPollingStatus();
+
+                // Show success UI animation in modal
+                const overlay = document.getElementById('khqrSuccessOverlay');
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                document.getElementById('khqrStatusText').textContent = 'Payment Captured! ✅';
+
+                // Clear cart cookie client-side too
+                document.cookie = "shopping_cart=; path=/; max-age=0";
+
+                // Redirect to success page
+                setTimeout(() => {
+                    window.location.href = result.redirect_url;
+                }, 1500);
+            } else {
+                document.getElementById('khqrStatusText').textContent = 'Checking payment status (every 3s)...';
+            }
+        } catch (e) {
+            console.log('Polling check error:', e);
+        }
+    }, CHECK_INTERVAL_MS);
+}
+
+function stopPollingStatus() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
+
+</script>
 {% endblock %}

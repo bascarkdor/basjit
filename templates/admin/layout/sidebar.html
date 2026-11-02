@@ -1,12 +1,53 @@
 <aside class="w-full md:w-64 bg-slate-900 text-slate-200 flex flex-col p-5 shrink-0 min-h-screen">
-    <div class="text-xl font-black text-white tracking-wider mb-6 md:mb-8">MY_APP</div>
+    <div class="text-xl font-black text-white tracking-wider mb-6 md:mb-8 flex items-center gap-2">
+        <span class="w-2.5 h-6 bg-blue-500 rounded-full inline-block"></span>
+        <span>MY_APP</span>
+    </div>
 
     <!-- Main Navigation -->
-    <nav id="sidebar-nav" class="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
-        <a href="{{ url_for('admin.dashboard') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Dashboard</a>
-        <a href="{{ url_for('admin.list_users') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">User</a>
-        <a href="{{ url_for('admin.product') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Product</a>
-        <a href="{{ url_for('admin.categories') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors">Categories</a>
+    <nav id="sidebar-nav" class="flex flex-row md:flex-col gap-1.5 overflow-x-auto md:overflow-visible">
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2.5">
+            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            Dashboard
+        </a>
+        <a href="{{ url_for('admin.list_users') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2.5">
+            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            User
+        </a>
+        <a href="{{ url_for('admin.product') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2.5">
+            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Product
+        </a>
+        <a href="{{ url_for('admin.categories') }}" class="nav-link px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2.5">
+            <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            Categories
+        </a>
+
+        <!-- Orders Dropdown Section -->
+        <div class="space-y-1 pt-1">
+            <button type="button" id="ordersDropdownBtn" onclick="toggleOrdersDropdown()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800/60 hover:text-white transition-colors cursor-pointer group">
+                <span class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <span>Orders</span>
+                </span>
+                <svg id="ordersDropdownArrow" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div id="ordersDropdownMenu" class="pl-5 space-y-1 hidden border-l-2 border-slate-800 ml-4 py-1">
+                <a href="{{ url_for('admin.list_orders') }}" class="nav-link block px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors">
+                    All Orders
+                </a>
+                <a href="{{ url_for('admin.delivery_orders') }}" class="nav-link block px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors flex items-center justify-between">
+                    <span>Pay with Delivery</span>
+                    <span class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">COD</span>
+                </a>
+                <a href="{{ url_for('admin.khqr_orders') }}" class="nav-link block px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors flex items-center justify-between">
+                    <span>Pay with KHQR</span>
+                    <span class="text-[9px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-bold font-mono">KHQR</span>
+                </a>
+            </div>
+        </div>
     </nav>
 
     <div class="mt-auto pt-6 border-t border-slate-800">
@@ -20,17 +61,41 @@
 </aside>
 
 <script>
+    function toggleOrdersDropdown() {
+        const menu = document.getElementById('ordersDropdownMenu');
+        const arrow = document.getElementById('ordersDropdownArrow');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            arrow.classList.add('rotate-180');
+        } else {
+            menu.classList.add('hidden');
+            arrow.classList.remove('rotate-180');
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const currentPath = window.location.pathname;
         const navLinks = document.querySelectorAll('.nav-link');
+        const isOrdersPath = currentPath.startsWith('/admin/orders');
+
+        if (isOrdersPath) {
+            const menu = document.getElementById('ordersDropdownMenu');
+            const arrow = document.getElementById('ordersDropdownArrow');
+            if (menu) menu.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        }
 
         navLinks.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
+            const href = link.getAttribute('href');
+            if (href === currentPath) {
                 // Active styles
-                link.classList.add('bg-slate-800', 'text-white');
+                link.classList.add('bg-blue-600', 'text-white', 'font-semibold');
+                link.classList.remove('text-slate-400', 'text-slate-300');
             } else {
                 // Inactive styles
-                link.classList.add('text-slate-400', 'hover:bg-slate-800/50', 'hover:text-white');
+                if (!link.classList.contains('bg-blue-600')) {
+                    link.classList.add('text-slate-400', 'hover:bg-slate-800/60', 'hover:text-white');
+                }
             }
         });
     });

@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Dashboard App{% endblock %}</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- Toast Notifications for all events -->
+    {% include 'components/toast.html' %}
 
     <!-- Sidebar Fragment -->
     {% include 'admin/layout/sidebar.html' %}
@@ -43,6 +47,7 @@
         </div>
 
         <form id="universalForm" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div id="modalContent" class="space-y-4"></div>
 
             <div class="flex justify-end gap-3 mt-8">

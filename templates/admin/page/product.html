@@ -1,29 +1,34 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Products Catalog | My App{% endblock %}
+{% block title %}Products Catalog | Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div class="space-y-8 animate-fade-in">
 
     <!-- Header Controls -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/60 pb-5">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Products</h1>
-            <p class="text-sm text-slate-500 mt-1">View, search, and manage your inventory items and stock levels.</p>
+            <div class="flex items-center gap-3">
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Products</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    {{ pagination.total }} items
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">View, search, and manage your inventory items, pricing, and ratings.</p>
         </div>
-        <!-- Primary Action -->
+        <!-- Primary Action (Opens pure Jinja2 modal via URL parameter) -->
         <div>
-            <button onclick="openModal('product') id="addProductBtn" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 active:bg-blue-700 transition-all duration-150 focus:outline-hidden cursor-pointer">
+            <a href="{{ url_for('admin.product', action='add', search=search, category_id=selected_category_id, stock_status=selected_stock_status) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 active:bg-blue-700 transition-all duration-150">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Add New Product
-            </button>
+            </a>
         </div>
     </div>
 
     <!-- Filters & Search Bar Section -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <form method="GET" action="{{ url_for('admin.product') }}" class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <!-- Left: Search Box -->
         <div class="relative flex-1 max-w-md">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
@@ -31,163 +36,376 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.602 10.601Z" />
                 </svg>
             </span>
-            <input type="text" placeholder="Search products by title, SKU, or tag..." class="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden">
+            <input type="text" name="search" value="{{ search or '' }}" placeholder="Search products by title, name, description..." class="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 hover:bg-slate-50 focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden">
         </div>
 
         <!-- Right: Dropdown Filters -->
         <div class="flex flex-wrap items-center gap-3">
-            <select class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-950 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden cursor-pointer transition-all">
+            <select name="category_id" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-950 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden cursor-pointer transition-all">
                 <option value="">All Categories</option>
-                <option value="electronics">Electronics</option>
-                <option value="office">Office Gear</option>
-                <option value="apparel">Apparel</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
             </select>
-            <select class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-950 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden cursor-pointer transition-all">
-                <option value="">Stock Status</option>
-                <option value="in_stock">In Stock</option>
-                <option value="low_stock">Low Stock</option>
-                <option value="out_of_stock">Out of Stock</option>
+
+            <select name="stock_status" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-950 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-hidden cursor-pointer transition-all">
+                <option value="">All Stock Status</option>
+                <option value="in_stock" {% if selected_stock_status == 'in_stock' %}selected{% endif %}>In Stock</option>
+                <option value="low_stock" {% if selected_stock_status == 'low_stock' %}selected{% endif %}>Low Stock (&le; 5)</option>
+                <option value="out_of_stock" {% if selected_stock_status == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
             </select>
+
+            <button type="submit" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition cursor-pointer">
+                Filter
+            </button>
+
+            {% if search or selected_category_id or selected_stock_status %}
+            <a href="{{ url_for('admin.product') }}" class="px-3 py-2.5 text-rose-600 hover:text-rose-800 text-sm font-semibold transition">
+                Clear Filters
+            </a>
+            {% endif %}
         </div>
-    </div>
+    </form>
 
     <!-- Product Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% if products %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for product in products %}
+        <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div>
+                <!-- Image Section -->
+                <div class="h-48 bg-slate-100 flex items-center justify-center relative overflow-hidden border-b border-slate-100 p-4">
+                    <div class="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-60"></div>
+                    <img src="{{ product.image }}" alt="{{ product.display_title }}" class="relative max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
+                    
+                    <!-- Status Badge overlay -->
+                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                        {% if product.stock_int > 5 %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 text-white backdrop-blur-xs px-2.5 py-0.5 text-xs font-semibold shadow-xs">
+                            <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
+                            In Stock ({{ product.stock }})
+                        </span>
+                        {% elif product.stock_int > 0 %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-500/90 text-white backdrop-blur-xs px-2.5 py-0.5 text-xs font-semibold shadow-xs">
+                            Low Stock ({{ product.stock }})
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/90 text-white backdrop-blur-xs px-2.5 py-0.5 text-xs font-semibold shadow-xs">
+                            Out of Stock
+                        </span>
+                        {% endif %}
+                    </div>
 
-    {% for product in products %}
-    <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
-        <div>
-            <!-- Image Section -->
-            <div class="h-44 bg-slate-100 flex items-center justify-center relative overflow-hidden border-b border-slate-100">
-                <div class="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-60"></div>
-                <!-- Use the actual product image -->
-                <img src="{{ product.image }}" alt="{{ product.name }}" class="relative h-full w-full object-cover group-hover:scale-105 transition-transform duration-500">
-            </div>
-
-            <!-- Product Body Details -->
-            <div class="p-6 space-y-3">
-                <div class="flex justify-between items-start gap-2">
-                    {% if product.stock > 0 %}
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/10">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        In Stock
-                    </span>
-                    {% else %}
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/10">
-                        Out of Stock
+                    <!-- Category Badge overlay -->
+                    {% if product.category %}
+                    <span class="absolute top-3 right-3 rounded-full bg-slate-900/70 text-white backdrop-blur-xs px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wider">
+                        {{ product.category.name }}
                     </span>
                     {% endif %}
-                    <span class="text-xl font-extrabold text-slate-900">${{ "%.2f"|format(product.price) }}</span>
-                </div>
-                <div>
-                    <span class="text-2xs font-bold text-slate-400 uppercase tracking-widest block">SKU: {{ product.id }}</span>
-                    <h3 class="font-extrabold text-slate-900 text-base mt-0.5 group-hover:text-blue-600 transition-colors duration-150">{{ product.name }}</h3>
-                    <p class="text-xs text-slate-500 line-clamp-2 mt-1">{{ product.category }}</p>
                 </div>
 
-                <!-- Stock Counter Bar (assuming max capacity of 100 for visual) -->
-                <div class="pt-2">
-                    <div class="flex justify-between items-center text-2xs font-bold text-slate-400 mb-1">
-                        <span>Inventory Level</span>
-                        <span class="text-slate-700">{{ product.stock }} Units</span>
+                <!-- Product Body Details -->
+                <div class="p-5 space-y-3">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <span class="text-2xs font-bold text-slate-400 uppercase tracking-widest block">ID: #{{ product.id }}</span>
+                            <h3 class="font-extrabold text-slate-900 text-base mt-0.5 line-clamp-1 group-hover:text-blue-600 transition-colors" title="{{ product.display_title }}">
+                                {{ product.display_title }}
+                            </h3>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-lg font-black text-slate-900">${{ "%.2f"|format(product.price or 0.0) }}</div>
+                            {% if product.discount_price %}
+                            <span class="text-xs text-rose-500 font-semibold line-through block">${{ product.discount_price }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full {{ 'bg-emerald-500' if product.stock > 10 else 'bg-amber-500' }} rounded-full"
-                             style="width: {{ (product.stock / 100 * 100) | int }}%">
+
+                    <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                        {{ product.description or 'No description provided.' }}
+                    </p>
+
+                    <!-- Rating & Reviews -->
+                    <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                        <div class="flex items-center gap-1 bg-amber-50 text-amber-700 font-semibold px-2 py-0.5 rounded-md border border-amber-200/60">
+                            <span class="text-amber-500">★</span>
+                            <span>{{ product.rating.rate }}</span>
+                            <span class="text-slate-400 font-normal">({{ product.rating.count }})</span>
+                        </div>
+                        <span class="text-2xs font-semibold uppercase px-2 py-0.5 rounded-md {{ 'bg-emerald-50 text-emerald-700' if product.status == 'active' else 'bg-slate-100 text-slate-600' }}">
+                            {{ product.status }}
+                        </span>
+                    </div>
+
+                    <!-- Stock Counter Bar -->
+                    <div class="pt-1">
+                        <div class="flex justify-between items-center text-2xs font-bold text-slate-400 mb-1">
+                            <span>Available Units</span>
+                            <span class="text-slate-700">{{ product.stock or 0 }}</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full {{ 'bg-emerald-500' if product.stock_int > 5 else ('bg-amber-500' if product.stock_int > 0 else 'bg-rose-400') }} rounded-full"
+                                 style="width: {{ [product.stock_int, 100]|min }}%">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Footer Actions -->
-        <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex gap-2.5">
-            <!-- EDIT BUTTON: Notice there is NO nested for-loop here -->
-            <button onclick="openModal('product', {
-                id: '{{ product.id }}',
-                    Image: '{{ product.image }}',
-                    category: '{{ product.category }}',
-                name: '{{ product.name }}',
-                price: '{{ product.price }}',
-                stock: '{{ product.stock }}',
-            })"
-            class="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-bold py-2 px-3 border border-slate-200 bg-white rounded-xl text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer">
-                Edit
-            </button>
+            <!-- Footer Actions (Pure Python / Jinja2 URL links and Forms) -->
+            <div class="px-5 py-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center gap-2">
+                <!-- EDIT BUTTON: Links directly to action=edit&id=... -->
+                <a href="{{ url_for('admin.product', action='edit', id=product.id, search=search, category_id=selected_category_id, stock_status=selected_stock_status, page=pagination.page) }}"
+                   class="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-bold py-2 px-3 border border-slate-200 bg-white rounded-xl text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors shadow-2xs">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                    Edit
+                </a>
 
-            <!-- Delete Button -->
-            <button class="inline-flex items-center justify-center p-2 rounded-xl border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                </svg>
-            </button>
+                <!-- DELETE FORM: Standard HTML form with CSRF token -->
+                <form action="{{ url_for('admin.delete_product', id=product.id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="inline-flex items-center justify-center p-2 rounded-xl border border-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors cursor-pointer"
+                            title="Delete Product">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-
-</div>
+    {% else %}
+    <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-400">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+            </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-800">No products found</h3>
+        <p class="text-sm text-slate-500 mt-1 max-w-sm mx-auto">There are no inventory items matching your search or filters.</p>
+        <a href="{{ url_for('admin.product', action='add') }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 transition">
+            Add New Product
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Table Pagination Footer -->
+    {% if pagination.pages > 1 %}
     <div class="bg-white border border-slate-200/80 rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
         <span class="text-xs font-semibold text-slate-500">
-            Showing <span class="text-slate-900">1</span> to <span class="text-slate-900">3</span> of <span class="text-slate-900">142</span> listed products
+            Showing <span class="text-slate-900">{{ (pagination.page - 1) * pagination.per_page + 1 }}</span> to <span class="text-slate-900">{{ [pagination.page * pagination.per_page, pagination.total]|min }}</span> of <span class="text-slate-900">{{ pagination.total }}</span> products
         </span>
         <div class="inline-flex items-center gap-2">
-            <button class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed shadow-2xs" disabled>
-                Previous
-            </button>
-            <button class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 shadow-2xs transition-all duration-150 cursor-pointer">
-                Next
-            </button>
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.product', page=pagination.prev_num, search=search, category_id=selected_category_id, stock_status=selected_stock_status) }}" class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition">
+                &larr; Previous
+            </a>
+            {% else %}
+            <span class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed">
+                &larr; Previous
+            </span>
+            {% endif %}
+
+            <span class="text-xs font-semibold text-slate-600 px-2">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.product', page=pagination.next_num, search=search, category_id=selected_category_id, stock_status=selected_stock_status) }}" class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-2xs transition">
+                Next &rarr;
+            </a>
+            {% else %}
+            <span class="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-400 cursor-not-allowed">
+                Next &rarr;
+            </span>
+            {% endif %}
         </div>
     </div>
-
-<dialog id="addProductModal" class="p-0 rounded-2xl shadow-xl border border-slate-200 backdrop:bg-slate-900/50 w-full max-w-lg m-auto">
-        <div class="p-6">
-            <h2 class="text-xl font-bold text-slate-900 mb-6">Add New Product</h2>
-
-            <!-- IMPORTANT: added enctype="multipart/form-data" -->
-            <form action="/admin/product/add" method="POST" enctype="multipart/form-data" class="space-y-4">
-
-                <!-- Preview & Upload Section -->
-                <div class="flex items-center gap-4">
-                    <img id="imagePreview" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                         class="w-16 h-16 rounded-lg object-cover border border-slate-200 bg-slate-100 hidden">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Product Image</label>
-                        <input type="file" name="product_image" id="imageInput" accept="image/*" capture="environment"
-                               class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Product Name</label>
-                    <input type="text" name="name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Price ($)</label>
-                        <input type="number" step="0.01" name="price" required class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Stock</label>
-                        <input type="number" name="stock" required class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 mt-8">
-                    <button type="button" id="cancelAddProduct" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500 cursor-pointer">Save Product</button>
-                </div>
-            </form>
-        </div>
-    </dialog>
+    {% endif %}
 
 </div>
-{% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='model/product.js') }}"></script>
-<script src="{{ url_for('static', filename='model/modal_handler.js') }}"></script>
+<!-- PURE JINJA2 / PYTHON SERVER-SIDE RENDERED MODAL (NO JAVASCRIPT) -->
+{% if request.args.get('action') == 'add' or edit_product %}
+<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-slate-100 my-8">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+                <h3 class="text-xl font-extrabold text-slate-900">
+                    {% if edit_product %}Edit Product: {{ edit_product.title }}{% else %}Add New Product{% endif %}
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    {% if edit_product %}Update details and pricing for product ID #{{ edit_product.id }}{% else %}Fill in the fields below to add a new inventory product.{% endif %}
+                </p>
+            </div>
+            <!-- Close Link -->
+            <a href="{{ url_for('admin.product', search=search, category_id=selected_category_id, stock_status=selected_stock_status, page=pagination.page) }}"
+               class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none p-1 rounded-lg hover:bg-slate-100 transition">
+                &times;
+            </a>
+        </div>
+
+        <!-- Form (Pure HTML POST to Flask) -->
+        <form action="{% if edit_product %}{{ url_for('admin.edit_product', id=edit_product.id) }}{% else %}{{ url_for('admin.add_product') }}{% endif %}"
+              method="POST"
+              enctype="multipart/form-data"
+              class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Title & Name -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Product Title <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="title" value="{{ edit_product.title if edit_product else '' }}" required placeholder="e.g. Premium Cotton Crewneck T-Shirt"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Short Name / SKU Label
+                    </label>
+                    <input type="text" name="name" value="{{ edit_product.name if edit_product else '' }}" placeholder="Optional short name"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Category
+                    </label>
+                    <select name="category_id" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:border-blue-500 focus:outline-hidden transition cursor-pointer">
+                        <option value="">-- Select Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if edit_product and edit_product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Price, Discount, Stock -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Price ($) <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="number" step="0.01" min="0" name="price" value="{{ edit_product.price if edit_product else '' }}" required placeholder="29.99"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Discount Price ($)
+                    </label>
+                    <input type="text" name="discount_price" value="{{ edit_product.discount_price if (edit_product and edit_product.discount_price) else '' }}" placeholder="Optional sale price"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Stock Quantity
+                    </label>
+                    <input type="number" min="0" name="stock" value="{{ edit_product.stock if edit_product else '10' }}"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+            </div>
+
+            <!-- Status & Ratings -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Status</label>
+                    <select name="status" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition cursor-pointer">
+                        <option value="active" {% if edit_product and edit_product.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if edit_product and edit_product.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="out_of_stock" {% if edit_product and edit_product.status == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Rating (0 - 5)</label>
+                    <input type="number" step="0.1" min="0" max="5" name="rating_rate" value="{{ edit_product.rating_rate if edit_product else '4.5' }}"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Rating Count</label>
+                    <input type="number" min="0" name="rating_count" value="{{ edit_product.rating_count if edit_product else '1' }}"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Description</label>
+                <textarea name="description" rows="3" placeholder="Detailed product specifications, materials, features..."
+                          class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:border-blue-500 focus:outline-hidden transition">{{ edit_product.description if edit_product else '' }}</textarea>
+            </div>
+
+            <!-- Image Options (Multiple Files Upload & Gallery) -->
+            <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Product Images (Upload Multiple)</label>
+                    <span class="text-2xs text-slate-400 font-medium">Select multiple images at once</span>
+                </div>
+                
+                <div>
+                    <input type="file" name="product_images" multiple accept="image/*"
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-600 file:text-white file:font-semibold hover:file:bg-blue-500 cursor-pointer bg-white border border-slate-200 rounded-xl p-2">
+                </div>
+
+                <!-- Existing Gallery Images Preview & Deletion (When Editing) -->
+                {% if edit_product %}
+                <div class="pt-3 border-t border-slate-200/60">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xs text-slate-600 font-bold uppercase tracking-wider">
+                            Current Gallery Images ({{ edit_product.all_images|length }}):
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3">
+                        {% for img_path in edit_product.all_images %}
+                        <div class="relative group w-20 h-20 bg-white border border-slate-200 rounded-xl overflow-hidden p-1 shadow-2xs flex items-center justify-center">
+                            <img src="{{ img_path }}" class="max-h-full max-w-full object-contain">
+                            
+                            <!-- If this image is saved in ProductImage, show delete button linked via HTML5 form attribute -->
+                            {% for db_img in edit_product.images %}
+                                {% if db_img.name == img_path %}
+                                <button type="submit"
+                                        form="delete-img-{{ db_img.id }}"
+                                        class="absolute top-1 right-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-sm cursor-pointer"
+                                        title="Delete image">
+                                    &times;
+                                </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <a href="{{ url_for('admin.product', search=search, category_id=selected_category_id, stock_status=selected_stock_status, page=pagination.page) }}"
+                   class="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 rounded-xl shadow-sm transition cursor-pointer">
+                    {% if edit_product %}Update Product{% else %}Save Product{% endif %}
+                </button>
+            </div>
+        </form>
+
+        <!-- Separate Delete Image Forms (Placed OUTSIDE the main form to prevent invalid nested forms) -->
+        {% if edit_product %}
+            {% for db_img in edit_product.images %}
+            <form id="delete-img-{{ db_img.id }}" action="{{ url_for('admin.delete_product_image', image_id=db_img.id) }}" method="POST" onsubmit="return confirm('Remove this image from product gallery?');" class="hidden">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            </form>
+            {% endfor %}
+        {% endif %}
+
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

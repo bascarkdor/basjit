@@ -15,6 +15,7 @@
     </div>
 
     <form action="/contact/send" method="POST" class="bg-white border border-gray-200 p-5 md:p-8 rounded-2xl shadow-sm space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         
         <div class="space-y-1.5">
             <label for="name" class="text-xs font-bold text-gray-700 uppercase tracking-wider">Full Name</label>

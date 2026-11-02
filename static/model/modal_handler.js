@@ -9,18 +9,17 @@ const modalContent = document.getElementById('modalContent');
 const entityConfigs = {
     product: {
         title: "Product",
-        url: '/admin/product',
+        baseAction: '/admin/product',
         fields: [
+            { name: 'title', type: 'text', label: 'Product Title' },
             { name: 'name', type: 'text', label: 'Product Name' },
-            { name: 'Image', type: 'text', label: 'Image' },
-            { name: 'category', type: 'text', label: 'Category' },
             { name: 'price', type: 'number', label: 'Price' },
             { name: 'stock', type: 'number', label: 'Stock' }
         ]
     },
     user: {
         title: "User",
-        url: '/admin/users',
+        baseAction: '/admin/users',
         customHtml: `
             <div class="flex items-center gap-4 mb-2">
                 <img id="avatarPreview" src="https://ui-avatars.com/api/?name=User" class="w-16 h-16 rounded-full object-cover border border-slate-200 shadow-sm">

@@ -15,3 +15,4 @@ from . import product
 from . import categories
 from . import dashboard
 from . import Auth
+from . import orders
